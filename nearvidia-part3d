@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEARVIDIA 3D - Transform Your Images into Interactive 3D Particle Art</title>
+    <meta name="description" content="Upload images and transform them into mesmerizing interactive 3D particle animations. Adjust parameters in real-time to create unique visual experiences.">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #76b900;
+            --secondary-color: #333333;
+            --background-color: #f5f5f5;
+            --text-color: #333333;
+            --button-hover-color: #5a8f00;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .nearvidia-logo {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2em;
+        }
+
+        .upload-section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 600px;
+            background-color: #222;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        #particleCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: var(--button-hover-color);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        #imageUpload {
+            display: none;
+        }
+
+        .file-upload-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #f0f0f0;
+            color: var(--secondary-color);
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .file-upload-label:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="nearvidia-logo">NEARVIDIA</div>
+            <h1>3D Particle Art Generator</h1>
+            <p>Transform Your Images into Interactive 3D Particle Art</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="upload-section">
+            <h2>Upload Your Image</h2>
+            <label for="imageUpload" class="file-upload-label">Choose an image</label>
+            <input type="file" id="imageUpload" accept="image/*">
+            <button class="btn" onclick="processImage()">Transform to 3D Particles</button>
+        </section>
+
+        <section class="canvas-container">
+            <canvas id="particleCanvas"></canvas>
+        </section>
+
+        <section class="controls">
+            <div class="control-group">
+                <label for="particleSize">Particle Size</label>
+                <input type="range" id="particleSize" min="0.1" max="2" step="0.1" value="0.5" onchange="updateParticles()">
+            </div>
+            <div class="control-group">
+                <label for="particleDensity">Particle Density</label>
+                <input type="range" id="particleDensity" min="1" max="10" value="5" onchange="updateParticles()">
+            </div>
+            <div class="control-group">
+                <label for="rotationSpeed">Rotation Speed</label>
+                <input type="range" id="rotationSpeed" min="0" max="0.1" step="0.001" value="0.005" onchange="updateRotationSpeed()">
+            </div>
+            <div class="control-group">
+                <label for="depthFactor">Depth Factor</label>
+                <input type="range" id="depthFactor" min="0" max="50" value="10" onchange="updateDepthFactor()">
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, particles, rotationSpeed = 0.005, depthFactor = 10;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('particleCanvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function processImage() {
+            const input = document.getElementById('imageUpload');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        createParticles(img);
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function createParticles(img) {
+            if (particles) scene.remove(particles);
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0, img.width, img.height);
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const colors = [];
+            const density = parseInt(document.getElementById('particleDensity').value);
+
+            for (let y = 0; y < imgData.height; y += density) {
+                for (let x = 0; x < imgData.width; x += density) {
+                    const i = (y * imgData.width + x) * 4;
+                    const r = imgData.data[i] / 255;
+                    const g = imgData.data[i+1] / 255;
+                    const b = imgData.data[i+2] / 255;
+                    const a = imgData.data[i+3] / 255;
+
+                    if (a > 0) {
+                        const brightness = (r + g + b) / 3;
+                        positions.push(
+                            (x / imgData.width - 0.5) * 100,
+                            (y / imgData.height - 0.5) * -100,
+                            brightness * depthFactor
+                        );
+                        colors.push(r, g, b);
+                    }
+                }
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: parseFloat(document.getElementById('particleSize').value),
+                vertexColors: true
+            });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        function updateParticles() {
+            if (particles) {
+                particles.material.size = parseFloat(document.getElementById('particleSize').value);
+                const input = document.getElementById('imageUpload');
+                if (input.files[0]) {
+                    processImage();
+                }
+            }
+        }
+
+        function updateRotationSpeed() {
+            rotationSpeed = parseFloat(document.getElementById('rotationSpeed').value);
+        }
+
+        function updateDepthFactor() {
+            depthFactor = parseFloat(document.getElementById('depthFactor').value);
+            const input = document.getElementById('imageUpload');
+            if (input.files[0]) {
+                processImage();
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (particles) {
+                particles.rotation.y += rotationSpeed;
+            }
+            renderer.render(scene, camera);
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
